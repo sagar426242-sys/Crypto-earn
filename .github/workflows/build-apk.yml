@@ -25,29 +25,20 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Find Gradle project
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.6'
+
+      - name: Create Gradle Wrapper
+        working-directory: project
         run: |
-          echo "Searching for gradlew..."
-          find project -type f -name gradlew -print
+          gradle wrapper --gradle-version 8.6
+          chmod +x gradlew
 
       - name: Build APK
+        working-directory: project
         run: |
-          GRADLEW=$(find project -type f -name gradlew | head -n 1)
-
-          if [ -z "$GRADLEW" ]; then
-            echo "ERROR: gradlew not found!"
-            echo "Project files:"
-            find project -maxdepth 4 -type f | head -100
-            exit 1
-          fi
-
-          PROJECT_DIR=$(dirname "$GRADLEW")
-
-          echo "Gradle wrapper found at: $GRADLEW"
-          echo "Building from: $PROJECT_DIR"
-
-          chmod +x "$GRADLEW"
-          cd "$PROJECT_DIR"
           ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
