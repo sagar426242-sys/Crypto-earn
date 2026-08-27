@@ -3,7 +3,8 @@ name: Build Crypto Earn APK
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -15,7 +16,7 @@ jobs:
 
       - name: Extract project
         run: |
-          mkdir project
+          mkdir -p project
           unzip -o CryptoEarn_v2.1_APK_Build_Project.zip -d project
 
       - name: Set up Java
@@ -26,15 +27,20 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.6'
+
+      - name: Find Gradle project
+        run: |
+          find project -maxdepth 4 -name gradlew -type f
 
       - name: Build APK
         working-directory: project
-        run: gradle assembleDebug --no-daemon
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: CryptoEarn-APK
-          path: project/app/build/outputs/apk/debug/app-debug.apk
+          path: project/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
